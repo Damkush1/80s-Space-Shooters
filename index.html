@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>80s Spacecraft Flight - Image Asteroids</title>
+    <title>80s Spacecraft Flight - Ad on Game Over</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -53,34 +53,52 @@
             display: flex; 
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.8); 
+            justify-content: center; /* Center items vertically */
+            background-color: rgba(0, 0, 0, 0.85); 
             color: #ff0000; 
             text-align: center;
-            font-size: 2rem;
             z-index: 10;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        #messageOverlay h2 {
-            font-size: 3.5rem; 
-            margin-bottom: 25px;
+        #gameOverTitle { /* Moved up */
+            font-size: 3rem; 
+            margin-bottom: 15px; /* Space below GAME OVER */
             text-shadow: 0 0 15px #ff0000;
+            order: 1; /* Order for flex layout */
         }
-        #messageOverlay p {
-            font-size: 1.8rem; 
-            margin-bottom: 35px;
+        #finalScore { /* Moved up */
+            font-size: 1.5rem; 
+            margin-bottom: 20px; /* Space below score, before ad */
             color: #ffff00; 
+            order: 2;
         }
-        .restart-button {
+        #gameOverAdLink {
+            display: block;
+            margin: 0 auto 20px auto; /* Centered, space below ad, before restart */
+            order: 3;
+            max-width: 90%; /* Ensure ad link doesn't overflow small screens */
+        }
+        #gameOverAdImage {
+            display: block;
+            max-width: 100%; /* Image responsive within the link */
+            max-height: 40vh; /* UPDATED: Increased max-height for a larger image */
+            border: 3px solid #ffff00; /* Yellow border for the ad */
+            border-radius: 8px;
+            object-fit: contain; /* Ensure aspect ratio is maintained */
+        }
+        .restart-button { /* Moved down */
             font-family: 'Press Start 2P', cursive;
             background-color: #00ff00;
             color: #000000;
             border: none;
-            padding: 18px 35px; 
-            font-size: 1.8rem;
+            padding: 15px 30px; 
+            font-size: 1.5rem;
             cursor: pointer;
             border-radius: 8px;
             box-shadow: 0 0 10px #00ff00;
             transition: background-color 0.3s, box-shadow 0.3s;
+            order: 4;
         }
         .restart-button:hover {
             background-color: #ffff00;
@@ -89,7 +107,7 @@
         .controls-info {
             margin-top: 15px;
             font-size: 0.9rem;
-            color: #00ffff; /* Neon cyan for controls */
+            color: #00ffff; 
         }
     </style>
 </head>
@@ -105,6 +123,9 @@
     <div id="messageOverlay" style="display: none;"> 
         <h2 id="gameOverTitle">GAME OVER</h2>
         <p id="finalScore">Your Score: 0</p>
+        <a href="https://temu.to/k/eahana2cw8t" target="_blank" id="gameOverAdLink">
+            <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01jvsbe3m8e1c808vd44cengem%2F1747828887_img_1.webp?st=2025-05-21T10%3A53%3A39Z&se=2025-05-27T11%3A53%3A39Z&sks=b&skt=2025-05-21T10%3A53%3A39Z&ske=2025-05-27T11%3A53%3A39Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=rBWkIwkN6L6nE0JAQrm5iO4L3FZO2jT4rtz8R27jwpY%3D&az=oaivgprodscus" alt="Advertisement - Click to shop!" id="gameOverAdImage">
+        </a>
         <button id="restartButton" class="restart-button">RESTART</button>
     </div>
 
@@ -125,20 +146,18 @@
         const livesDisplay = document.getElementById('lives');
         
         const messageOverlay = document.getElementById('messageOverlay');
-        const gameOverTitleElement = document.getElementById('gameOverTitle');
+        // const gameOverTitleElement = document.getElementById('gameOverTitle'); // Already available
         const finalScoreDisplay = document.getElementById('finalScore');
         const restartButton = document.getElementById('restartButton');
+        // const gameOverAdImage = document.getElementById('gameOverAdImage'); // Not directly manipulated by JS for its src
 
-        // --- Asteroid Image ---
         const asteroidImage = new Image();
         let asteroidImageLoaded = false;
         asteroidImage.onload = () => {
             asteroidImageLoaded = true;
-            console.log("Asteroid image loaded successfully.");
         };
         asteroidImage.onerror = () => {
-            console.error("Failed to load asteroid image.");
-            // Optionally, could set a flag to draw a fallback shape
+            console.error("Failed to load asteroid image. Using fallback.");
         };
         asteroidImage.src = 'https://www.outbrain.com/blog/wp-content/uploads/2021/01/OB-Amelia-2019-Web-Orange-300x292.png';
 
@@ -146,7 +165,6 @@
         let canvasWidth = 600; 
         let canvasHeight = 400; 
 
-        // --- Game State ---
         let player;
         let asteroids = [];
         let stars = [];
@@ -166,19 +184,16 @@
         let animationFrameId = null; 
         let lastTimestamp = 0; 
 
-        // --- Player Object ---
         const playerWidth = 30;
         const playerHeight = 20;
         const playerSpeed = 5;
 
-        // --- Bullet Object ---
         const bulletSpeed = 7;
         const bulletWidth = 4;
         const bulletHeight = 10;
         const bulletColor = '#00ffff'; 
         const shootCooldown = 200; 
         let lastShotTime = 0;
-
 
         function createPlayer() {
             return {
@@ -192,9 +207,8 @@
             };
         }
 
-        // --- Asteroid Object ---
-        const asteroidMinSize = 25; // Adjusted for image visibility
-        const asteroidMaxSize = 50; // Adjusted for image visibility
+        const asteroidMinSize = 25; 
+        const asteroidMaxSize = 50; 
         const asteroidBaseSpeed = 1;
         const asteroidSpeedIncrement = 0.2;
         const asteroidHitScore = 10; 
@@ -205,19 +219,13 @@
             const x = Math.random() * (canvasWidth - size);
             const y = -size; 
             const speed = asteroidBaseSpeed + (score / 500) * asteroidSpeedIncrement;
-            // Removed sides and angleOffset as they are for polygon drawing
             return { 
-                x, 
-                y, 
-                size, // This will be used for image width & height
-                speed, 
-                // color: '#ff00ff', // Color not directly used for image, but explosion can use it
+                x, y, size, speed, 
                 rotation: 0, 
                 rotationSpeed: (Math.random() - 0.5) * 0.05 
             };
         }
 
-        // --- Starfield ---
         const numStars = 100; 
         const starSpeed = 0.5;
         const starMinSize = 2; 
@@ -239,34 +247,21 @@
             }
         }
 
-        // --- Bullet Creation ---
         function createBullet(x, y) {
             return {
-                x: x,
-                y: y,
-                width: bulletWidth,
-                height: bulletHeight,
-                color: bulletColor,
-                speed: bulletSpeed
+                x: x, y: y, width: bulletWidth, height: bulletHeight,
+                color: bulletColor, speed: bulletSpeed
             };
         }
         
-        // --- Explosion Creation ---
         function createExplosion(x, y, size, color = '#FFA500', duration = 300) { 
             explosions.push({
-                x: x,
-                y: y,
-                initialSize: size,
-                currentSize: 0,
-                maxSize: size * 1.5, 
-                color: color,
-                startTime: performance.now(),
-                duration: duration
+                x: x, y: y, initialSize: size, currentSize: 0,
+                maxSize: size * 1.5, color: color,
+                startTime: performance.now(), duration: duration
             });
         }
 
-
-        // --- Drawing Functions ---
         function drawPlayer() {
             if (!player) return;
             ctx.fillStyle = player.color;
@@ -290,20 +285,16 @@
 
         function drawAsteroids() {
             if (!asteroidImageLoaded) {
-                // Fallback: draw simple squares if image isn't loaded yet
                 asteroids.forEach(asteroid => {
-                    ctx.fillStyle = 'grey'; // Fallback color
+                    ctx.fillStyle = '#888888'; // Dark grey fallback
                     ctx.fillRect(asteroid.x, asteroid.y, asteroid.size, asteroid.size);
                 });
                 return;
             }
-
             asteroids.forEach(asteroid => {
                 ctx.save();
-                // Translate to the center of the asteroid for rotation
                 ctx.translate(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2);
                 ctx.rotate(asteroid.rotation);
-                // Draw the image centered at the translated point
                 ctx.drawImage(asteroidImage, -asteroid.size / 2, -asteroid.size / 2, asteroid.size, asteroid.size);
                 ctx.restore();
             });
@@ -317,9 +308,7 @@
                 const innerRadius = star.size * star.innerRadiusFactor;
                 const numPoints = star.points;
                 const angleStep = Math.PI / numPoints;
-
                 ctx.moveTo(star.x, star.y - outerRadius); 
-
                 for (let i = 0; i < numPoints * 2; i++) {
                     const radius = (i % 2 === 0) ? outerRadius : innerRadius;
                     const angle = i * angleStep - (Math.PI / 2); 
@@ -331,7 +320,6 @@
                 ctx.fill();
             });
         }
-
 
         function drawBullets() {
             bullets.forEach(bullet => {
@@ -346,18 +334,15 @@
                 const explosion = explosions[i];
                 const elapsedTime = currentTime - explosion.startTime;
                 const progress = elapsedTime / explosion.duration;
-
                 if (progress >= 1) {
-                    explosions.splice(i, 1); 
-                    continue;
+                    explosions.splice(i, 1); continue;
                 }
-
                 explosion.currentSize = explosion.maxSize * progress; 
                 const opacity = 1 - progress; 
-
+                const rgb = hexToRgb(explosion.color);
                 ctx.beginPath();
                 ctx.arc(explosion.x, explosion.y, explosion.currentSize / 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${hexToRgb(explosion.color).r}, ${hexToRgb(explosion.color).g}, ${hexToRgb(explosion.color).b}, ${opacity})`;
+                ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
                 ctx.fill();
             }
         }
@@ -371,7 +356,6 @@
             const b = parseInt(hex.slice(5, 7), 16);
             return { r, g, b };
         }
-
 
         function drawUI() {
             scoreDisplay.textContent = score;
@@ -395,12 +379,9 @@
             ctx.fillText('Press any Arrow Key to START', canvasWidth / 2, canvasHeight / 2 + 100);
         }
 
-        // --- Game Logic ---
         function updatePlayer() {
             if (!player) return;
-            player.x += player.dx;
-            player.y += player.dy;
-
+            player.x += player.dx; player.y += player.dy;
             if (player.x < 0) player.x = 0;
             if (player.x + player.width > canvasWidth) player.x = canvasWidth - player.width;
             if (player.y < 0) player.y = 0;
@@ -412,88 +393,60 @@
                 asteroids.push(createAsteroid());
                 lastAsteroidSpawn = currentTimestamp;
             }
-
             for (let i = asteroids.length - 1; i >= 0; i--) {
                 const asteroid = asteroids[i];
-                asteroid.y += asteroid.speed;
-                asteroid.rotation += asteroid.rotationSpeed;
-                if (asteroid.y > canvasHeight) { // Check if bottom of asteroid is off screen
-                    asteroids.splice(i, 1);
-                }
+                asteroid.y += asteroid.speed; asteroid.rotation += asteroid.rotationSpeed;
+                if (asteroid.y > canvasHeight) asteroids.splice(i, 1);
             }
         }
 
         function updateStars() {
             stars.forEach(star => {
                 star.y += starSpeed;
-                if (star.y > canvasHeight) {
-                    star.y = 0;
-                    star.x = Math.random() * canvasWidth;
-                }
+                if (star.y > canvasHeight) { star.y = 0; star.x = Math.random() * canvasWidth; }
             });
         }
 
         function updateBullets() {
             for (let i = bullets.length - 1; i >= 0; i--) {
-                const bullet = bullets[i];
-                bullet.y -= bullet.speed;
-                if (bullet.y + bullet.height < 0) { 
-                    bullets.splice(i, 1);
-                }
+                bullets[i].y -= bullets[i].speed;
+                if (bullets[i].y + bullets[i].height < 0) bullets.splice(i, 1);
             }
         }
         
-        function updateExplosions() {
-            // Drawing function handles animation and removal
-        }
-
+        function updateExplosions() { /* Drawing handles it */ }
 
         function checkCollisions() {
-            // Player vs Asteroid Collisions
             if (player && lives > 0) { 
                 asteroids.forEach((asteroid, aIndex) => {
-                    // AABB collision for player vs asteroid image
                     if (player.x < asteroid.x + asteroid.size &&
                         player.x + player.width > asteroid.x &&
                         player.y < asteroid.y + asteroid.size &&
                         player.y + player.height > asteroid.y) {
-                        
                         asteroids.splice(aIndex, 1); 
                         createExplosion(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2, asteroid.size, '#ff8800'); 
                         lives--; 
-                        
                         document.body.style.animation = 'shake 0.3s';
                         setTimeout(() => document.body.style.animation = '', 300);
-
-                        if (lives <= 0) {
-                            gameOver = true;
-                            displayGameOverScreen(); 
-                        }
+                        if (lives <= 0) { gameOver = true; displayGameOverScreen(); }
                     }
                 });
             }
 
-            // Bullet vs Asteroid Collisions
             for (let b = bullets.length - 1; b >= 0; b--) {
                 const bullet = bullets[b];
                 for (let a = asteroids.length - 1; a >= 0; a--) {
                     const asteroid = asteroids[a];
-                    // AABB collision for bullet vs asteroid image
                     if (bullet.x < asteroid.x + asteroid.size &&
                         bullet.x + bullet.width > asteroid.x &&
                         bullet.y < asteroid.y + asteroid.size &&
                         bullet.y + bullet.height > asteroid.y) {
-                        
-                        createExplosion(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2, asteroid.size, '#FFA500'); // Default orange for asteroid hit
-                        asteroids.splice(a, 1);
-                        bullets.splice(b, 1);
-                        score += asteroidHitScore; 
-                        break; 
+                        createExplosion(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2, asteroid.size, '#FFA500');
+                        asteroids.splice(a, 1); bullets.splice(b, 1); score += asteroidHitScore; break; 
                     }
                 }
             }
 
-            // Bullet vs Star Collisions
             for (let b = bullets.length - 1; b >= 0; b--) {
                 if (!bullets[b]) continue; 
                 const bullet = bullets[b];
@@ -503,17 +456,12 @@
                         bullet.x + bullet.width > star.x - star.size / 2 &&
                         bullet.y < star.y + star.size / 2 &&
                         bullet.y + bullet.height > star.y - star.size / 2) {
-                        
                         createExplosion(star.x, star.y, star.size * 2, '#FFFF00', 150); 
-                        stars.splice(s, 1);
-                        bullets.splice(b, 1);
-                        score += starHitScore; 
-                        break; 
+                        stars.splice(s, 1); bullets.splice(b, 1); score += starHitScore; break; 
                     }
                 }
             }
         }
-
 
         function updateDifficulty(deltaTime) { 
             difficultyTimer += deltaTime;
@@ -525,83 +473,39 @@
             }
         }
 
-        // --- Game Loop ---
         function gameLoop(timestamp) { 
             if (!gameStarted) {
-                drawInitialMessage();
-                animationFrameId = requestAnimationFrame(gameLoop);
-                return;
+                drawInitialMessage(); animationFrameId = requestAnimationFrame(gameLoop); return;
             }
-
-            if (gameOver) { 
-                return; 
-            }
-
+            if (gameOver) { return; }
             if (gamePaused) {
-                ctx.font = '30px "Press Start 2P"';
-                ctx.fillStyle = '#ffff00';
-                ctx.textAlign = 'center';
+                ctx.font = '30px "Press Start 2P"'; ctx.fillStyle = '#ffff00'; ctx.textAlign = 'center';
                 ctx.fillText('PAUSED', canvasWidth / 2, canvasHeight / 2);
-                animationFrameId = requestAnimationFrame(gameLoop); 
-                return;
+                animationFrameId = requestAnimationFrame(gameLoop); return;
             }
-            
-            if (lastTimestamp === 0) { 
-                lastTimestamp = timestamp;
-            }
-            const deltaTime = timestamp - lastTimestamp;
-            lastTimestamp = timestamp;
-
+            if (lastTimestamp === 0) lastTimestamp = timestamp;
+            const deltaTime = timestamp - lastTimestamp; lastTimestamp = timestamp;
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-            updateStars();
-            updatePlayer();
-            updateAsteroids(timestamp); 
-            updateBullets();
-            updateExplosions(); 
-            updateDifficulty(deltaTime); 
-
-            drawStars();
-            drawPlayer();
-            drawAsteroids();
-            drawBullets();
-            drawExplosions();
-            
-            checkCollisions(); 
-            drawUI();
-
+            updateStars(); updatePlayer(); updateAsteroids(timestamp); 
+            updateBullets(); updateExplosions(); updateDifficulty(deltaTime); 
+            drawStars(); drawPlayer(); drawAsteroids();
+            drawBullets(); drawExplosions();
+            checkCollisions(); drawUI();
             animationFrameId = requestAnimationFrame(gameLoop); 
         }
 
-        // --- Input Handling ---
         const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false };
-
         function handleKeyDown(e) {
             if (!gameStarted && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-                if (!gameOver) { 
-                   startGame(); 
-                }
+                if (!gameOver) startGame(); 
             }
-
-            if (e.key === 'p' || e.key === 'P') {
-                if (!gameOver) { 
-                    togglePause();
-                }
-            }
-            
-            if (e.key === 'r' || e.key === 'R') { 
-                if (!gameOver) { 
-                    startGame();
-                }
-            }
-
+            if (e.key === 'p' || e.key === 'P') if (!gameOver) togglePause();
+            if (e.key === 'r' || e.key === 'R') if (!gameOver) startGame();
             if (gameOver || gamePaused || !player) return; 
-
             if (e.key === 'ArrowUp' || e.key === 'w') { keys.ArrowUp = true; player.dy = -playerSpeed; }
             if (e.key === 'ArrowDown' || e.key === 's') { keys.ArrowDown = true; player.dy = playerSpeed; }
             if (e.key === 'ArrowLeft' || e.key === 'a') { keys.ArrowLeft = true; player.dx = -playerSpeed; }
             if (e.key === 'ArrowRight' || e.key === 'd') { keys.ArrowRight = true; player.dx = playerSpeed; }
-            
             if (e.key === ' ' || e.key === 'Spacebar') { 
                 keys.Space = true;
                 const currentTime = performance.now();
@@ -611,42 +515,26 @@
                 }
             }
         }
-
         function handleKeyUp(e) {
             if (!player) return;
             if (e.key === 'ArrowUp' || e.key === 'w') { keys.ArrowUp = false; if (!keys.ArrowDown) player.dy = 0; }
             if (e.key === 'ArrowDown' || e.key === 's') { keys.ArrowDown = false; if (!keys.ArrowUp) player.dy = 0; }
             if (e.key === 'ArrowLeft' || e.key === 'a') { keys.ArrowLeft = false; if (!keys.ArrowRight) player.dx = 0; }
             if (e.key === 'ArrowRight' || e.key === 'd') { keys.ArrowRight = false; if (!keys.ArrowLeft) player.dx = 0; }
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                keys.Space = false;
-            }
+            if (e.key === ' ' || e.key === 'Spacebar') keys.Space = false;
         }
 
-        // --- Game Control Functions ---
         function startGame() { 
-            gameStarted = true;
-            gameOver = false; 
-            gamePaused = false;
-            score = 0;
-            lives = 3; 
-            asteroids = [];
-            bullets = []; 
-            explosions = []; 
+            gameStarted = true; gameOver = false; gamePaused = false;
+            score = 0; lives = 3; 
+            asteroids = []; bullets = []; explosions = []; 
             asteroidSpawnInterval = 1000; 
             lastAsteroidSpawn = performance.now(); 
-            lastShotTime = 0; 
-            difficultyTimer = 0;
-            
-            player = createPlayer();
-            createStars(); 
-
+            lastShotTime = 0; difficultyTimer = 0;
+            player = createPlayer(); createStars(); 
             messageOverlay.style.display = 'none'; 
             drawUI();
-
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
             lastTimestamp = performance.now(); 
             animationFrameId = requestAnimationFrame(gameLoop);
         }
@@ -654,115 +542,62 @@
         function displayGameOverScreen() {
             finalScoreDisplay.textContent = `Your Score: ${score}`;
             messageOverlay.style.display = 'flex'; 
-            if (animationFrameId) { 
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
+            if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
         }
-
 
         function togglePause() {
             if (!gameStarted) return; 
             gamePaused = !gamePaused;
-
             if (!gamePaused) { 
                 lastTimestamp = performance.now(); 
-                if (!animationFrameId) { 
-                    animationFrameId = requestAnimationFrame(gameLoop);
-                }
+                if (!animationFrameId) animationFrameId = requestAnimationFrame(gameLoop);
             } else { 
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null; 
-                }
-                ctx.font = '30px "Press Start 2P"';
-                ctx.fillStyle = '#ffff00';
-                ctx.textAlign = 'center';
+                if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+                ctx.font = '30px "Press Start 2P"'; ctx.fillStyle = '#ffff00'; ctx.textAlign = 'center';
                 ctx.fillText('PAUSED', canvasWidth / 2, canvasHeight / 2);
             }
         }
 
-        // --- Event Listeners ---
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
         restartButton.addEventListener('click', startGame); 
 
-
-        // --- Initial Setup ---
         function init() {
-            // Image loading starts when asteroidImage.src is set.
-            // init will proceed to set up the game.
-            // If the image isn't loaded by the first draw, the fallback in drawAsteroids will be used.
-            resizeCanvas(); 
-            player = createPlayer(); 
-            createStars(); 
-            drawUI();
+            resizeCanvas(); player = createPlayer(); createStars(); drawUI();
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function resizeCanvas() {
-            const maxWidth = 800;
-            const aspectRatio = 600 / 400; 
-
+            const maxWidth = 800; const aspectRatio = 600 / 400; 
             let newWidth = Math.min(maxWidth, window.innerWidth - 30); 
             let newHeight = newWidth / aspectRatio;
-
             if (newHeight > window.innerHeight - 150) { 
-                newHeight = window.innerHeight - 150;
-                newWidth = newHeight * aspectRatio;
+                newHeight = window.innerHeight - 150; newWidth = newHeight * aspectRatio;
             }
-            
-            canvas.width = newWidth;
-            canvas.height = newHeight;
-            canvasWidth = newWidth; 
-            canvasHeight = newHeight; 
-
+            canvas.width = newWidth; canvas.height = newHeight;
+            canvasWidth = newWidth; canvasHeight = newHeight; 
             gameInfoContainer.style.maxWidth = `${newWidth}px`;
-
             if (gameStarted && player) {
                  player.x = Math.max(0, Math.min(player.x, canvasWidth - player.width));
                  player.y = Math.max(0, Math.min(player.y, canvasHeight - player.height));
             }
             createStars(); 
-
-            if (!gameStarted) {
-                drawInitialMessage();
-            } else if (gamePaused) { 
+            if (!gameStarted) drawInitialMessage();
+            else if (gamePaused) { 
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight); 
-                drawStars(); 
-                if(player) drawPlayer();
-                drawAsteroids(); 
-                drawBullets();
-                drawExplosions();
-
-                ctx.font = '30px "Press Start 2P"';
-                ctx.fillStyle = '#ffff00';
-                ctx.textAlign = 'center';
+                drawStars(); if(player) drawPlayer(); drawAsteroids(); drawBullets(); drawExplosions();
+                ctx.font = '30px "Press Start 2P"'; ctx.fillStyle = '#ffff00'; ctx.textAlign = 'center';
                 ctx.fillText('PAUSED', canvasWidth / 2, canvasHeight / 2);
             } else if (gameOver) { 
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                drawStars(); 
-                if(player) drawPlayer();
-                drawAsteroids();
-                drawExplosions(); 
+                drawStars(); if(player) drawPlayer(); drawAsteroids(); drawExplosions(); 
             }
         }
-
         window.addEventListener('resize', resizeCanvas);
-        
         const styleSheet = document.createElement("style");
         styleSheet.type = "text/css";
-        styleSheet.innerText = `
-            @keyframes shake {
-                0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); }
-                20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); }
-                40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); }
-                60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); }
-                80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); }
-                100% { transform: translate(1px, -2px) rotate(-1deg); }
-            }`;
+        styleSheet.innerText = `@keyframes shake {0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); }}`;
         document.head.appendChild(styleSheet);
-
         init(); 
     </script>
 </body>
