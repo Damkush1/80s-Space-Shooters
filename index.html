@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>80s Spacecraft Flight - Game Over</title>
+    <title>80s Spacecraft Flight - Image Asteroids</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -50,32 +50,32 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex; /* Will be set to 'none' initially and 'flex' when game over */
+            display: flex; 
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: rgba(0, 0, 0, 0.8); /* Darker overlay */
-            color: #ff0000; /* Red for GAME OVER text */
+            background-color: rgba(0, 0, 0, 0.8); 
+            color: #ff0000; 
             text-align: center;
             font-size: 2rem;
             z-index: 10;
         }
         #messageOverlay h2 {
-            font-size: 3.5rem; /* Larger GAME OVER text */
+            font-size: 3.5rem; 
             margin-bottom: 25px;
             text-shadow: 0 0 15px #ff0000;
         }
         #messageOverlay p {
-            font-size: 1.8rem; /* Larger score text */
+            font-size: 1.8rem; 
             margin-bottom: 35px;
-            color: #ffff00; /* Yellow for final score */
+            color: #ffff00; 
         }
         .restart-button {
             font-family: 'Press Start 2P', cursive;
             background-color: #00ff00;
             color: #000000;
             border: none;
-            padding: 18px 35px; /* Slightly larger button */
+            padding: 18px 35px; 
             font-size: 1.8rem;
             cursor: pointer;
             border-radius: 8px;
@@ -102,7 +102,8 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="messageOverlay" style="display: none;"> <h2 id="gameOverTitle">GAME OVER</h2>
+    <div id="messageOverlay" style="display: none;"> 
+        <h2 id="gameOverTitle">GAME OVER</h2>
         <p id="finalScore">Your Score: 0</p>
         <button id="restartButton" class="restart-button">RESTART</button>
     </div>
@@ -123,11 +124,23 @@
         const scoreDisplay = document.getElementById('score');
         const livesDisplay = document.getElementById('lives');
         
-        // Game Over screen elements
         const messageOverlay = document.getElementById('messageOverlay');
-        const gameOverTitleElement = document.getElementById('gameOverTitle'); // To potentially change text later if needed
+        const gameOverTitleElement = document.getElementById('gameOverTitle');
         const finalScoreDisplay = document.getElementById('finalScore');
         const restartButton = document.getElementById('restartButton');
+
+        // --- Asteroid Image ---
+        const asteroidImage = new Image();
+        let asteroidImageLoaded = false;
+        asteroidImage.onload = () => {
+            asteroidImageLoaded = true;
+            console.log("Asteroid image loaded successfully.");
+        };
+        asteroidImage.onerror = () => {
+            console.error("Failed to load asteroid image.");
+            // Optionally, could set a flag to draw a fallback shape
+        };
+        asteroidImage.src = 'https://www.outbrain.com/blog/wp-content/uploads/2021/01/OB-Amelia-2019-Web-Orange-300x292.png';
 
 
         let canvasWidth = 600; 
@@ -141,7 +154,7 @@
         let explosions = []; 
         let score = 0;
         let lives = 3;
-        let gameOver = false; // Re-introduced gameOver state
+        let gameOver = false; 
         let gamePaused = false;
         let gameStarted = false;
         let asteroidSpawnInterval = 1000; 
@@ -180,8 +193,8 @@
         }
 
         // --- Asteroid Object ---
-        const asteroidMinSize = 15;
-        const asteroidMaxSize = 40;
+        const asteroidMinSize = 25; // Adjusted for image visibility
+        const asteroidMaxSize = 50; // Adjusted for image visibility
         const asteroidBaseSpeed = 1;
         const asteroidSpeedIncrement = 0.2;
         const asteroidHitScore = 10; 
@@ -192,9 +205,16 @@
             const x = Math.random() * (canvasWidth - size);
             const y = -size; 
             const speed = asteroidBaseSpeed + (score / 500) * asteroidSpeedIncrement;
-            const sides = Math.floor(Math.random() * 3) + 5; 
-            const angleOffset = Math.random() * Math.PI * 2;
-            return { x, y, size, speed, color: '#ff00ff', sides, angleOffset, rotation: 0, rotationSpeed: (Math.random() - 0.5) * 0.05 };
+            // Removed sides and angleOffset as they are for polygon drawing
+            return { 
+                x, 
+                y, 
+                size, // This will be used for image width & height
+                speed, 
+                // color: '#ff00ff', // Color not directly used for image, but explosion can use it
+                rotation: 0, 
+                rotationSpeed: (Math.random() - 0.5) * 0.05 
+            };
         }
 
         // --- Starfield ---
@@ -269,22 +289,23 @@
         }
 
         function drawAsteroids() {
+            if (!asteroidImageLoaded) {
+                // Fallback: draw simple squares if image isn't loaded yet
+                asteroids.forEach(asteroid => {
+                    ctx.fillStyle = 'grey'; // Fallback color
+                    ctx.fillRect(asteroid.x, asteroid.y, asteroid.size, asteroid.size);
+                });
+                return;
+            }
+
             asteroids.forEach(asteroid => {
-                ctx.fillStyle = asteroid.color;
-                ctx.beginPath();
-                for (let i = 0; i < asteroid.sides; i++) {
-                    const angle = (i / asteroid.sides) * Math.PI * 2 + asteroid.rotation + asteroid.angleOffset;
-                    const radiusVariation = asteroid.size / 2 * (0.7 + Math.random() * 0.3); 
-                    const xPoint = asteroid.x + asteroid.size / 2 + Math.cos(angle) * radiusVariation;
-                    const yPoint = asteroid.y + asteroid.size / 2 + Math.sin(angle) * radiusVariation;
-                    if (i === 0) ctx.moveTo(xPoint, yPoint);
-                    else ctx.lineTo(xPoint, yPoint);
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#aa00aa'; 
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.save();
+                // Translate to the center of the asteroid for rotation
+                ctx.translate(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2);
+                ctx.rotate(asteroid.rotation);
+                // Draw the image centered at the translated point
+                ctx.drawImage(asteroidImage, -asteroid.size / 2, -asteroid.size / 2, asteroid.size, asteroid.size);
+                ctx.restore();
             });
         }
 
@@ -396,7 +417,7 @@
                 const asteroid = asteroids[i];
                 asteroid.y += asteroid.speed;
                 asteroid.rotation += asteroid.rotationSpeed;
-                if (asteroid.y - asteroid.size > canvasHeight) {
+                if (asteroid.y > canvasHeight) { // Check if bottom of asteroid is off screen
                     asteroids.splice(i, 1);
                 }
             }
@@ -429,32 +450,24 @@
 
         function checkCollisions() {
             // Player vs Asteroid Collisions
-            if (player && lives > 0) { // Only check if player exists and has lives
+            if (player && lives > 0) { 
                 asteroids.forEach((asteroid, aIndex) => {
-                    const playerLeft = player.x;
-                    const playerRight = player.x + player.width;
-                    const playerTop = player.y;
-                    const playerBottom = player.y + player.height;
-                    const asteroidCenterX = asteroid.x + asteroid.size / 2;
-                    const asteroidCenterY = asteroid.y + asteroid.size / 2;
-                    const asteroidRadius = asteroid.size / 2;
-                    let closestX = Math.max(playerLeft, Math.min(asteroidCenterX, playerRight));
-                    let closestY = Math.max(playerTop, Math.min(asteroidCenterY, playerBottom));
-                    const distanceX = asteroidCenterX - closestX;
-                    const distanceY = asteroidCenterY - closestY;
-                    const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
-
-                    if (distanceSquared < (asteroidRadius * asteroidRadius)) {
+                    // AABB collision for player vs asteroid image
+                    if (player.x < asteroid.x + asteroid.size &&
+                        player.x + player.width > asteroid.x &&
+                        player.y < asteroid.y + asteroid.size &&
+                        player.y + player.height > asteroid.y) {
+                        
                         asteroids.splice(aIndex, 1); 
                         createExplosion(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2, asteroid.size, '#ff8800'); 
-                        lives--; // Decrement lives
+                        lives--; 
                         
                         document.body.style.animation = 'shake 0.3s';
                         setTimeout(() => document.body.style.animation = '', 300);
 
                         if (lives <= 0) {
                             gameOver = true;
-                            displayGameOverScreen(); // Call function to show game over screen
+                            displayGameOverScreen(); 
                         }
                     }
                 });
@@ -465,12 +478,13 @@
                 const bullet = bullets[b];
                 for (let a = asteroids.length - 1; a >= 0; a--) {
                     const asteroid = asteroids[a];
+                    // AABB collision for bullet vs asteroid image
                     if (bullet.x < asteroid.x + asteroid.size &&
                         bullet.x + bullet.width > asteroid.x &&
                         bullet.y < asteroid.y + asteroid.size &&
                         bullet.y + bullet.height > asteroid.y) {
                         
-                        createExplosion(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2, asteroid.size);
+                        createExplosion(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2, asteroid.size, '#FFA500'); // Default orange for asteroid hit
                         asteroids.splice(a, 1);
                         bullets.splice(b, 1);
                         score += asteroidHitScore; 
@@ -519,9 +533,7 @@
                 return;
             }
 
-            if (gameOver) { // If game over, stop the main game loop updates
-                // The game over screen is displayed by displayGameOverScreen()
-                // and remains until restart.
+            if (gameOver) { 
                 return; 
             }
 
@@ -566,24 +578,24 @@
 
         function handleKeyDown(e) {
             if (!gameStarted && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-                if (!gameOver) { // Only start if not already game over
+                if (!gameOver) { 
                    startGame(); 
                 }
             }
 
             if (e.key === 'p' || e.key === 'P') {
-                if (!gameOver) { // Can only pause if not game over
+                if (!gameOver) { 
                     togglePause();
                 }
             }
             
             if (e.key === 'r' || e.key === 'R') { 
-                if (!gameOver) { // 'R' for restart during gameplay
+                if (!gameOver) { 
                     startGame();
                 }
             }
 
-            if (gameOver || gamePaused || !player) return; // No controls if game over or paused
+            if (gameOver || gamePaused || !player) return; 
 
             if (e.key === 'ArrowUp' || e.key === 'w') { keys.ArrowUp = true; player.dy = -playerSpeed; }
             if (e.key === 'ArrowDown' || e.key === 's') { keys.ArrowDown = true; player.dy = playerSpeed; }
@@ -614,7 +626,7 @@
         // --- Game Control Functions ---
         function startGame() { 
             gameStarted = true;
-            gameOver = false; // Reset game over state
+            gameOver = false; 
             gamePaused = false;
             score = 0;
             lives = 3; 
@@ -629,7 +641,7 @@
             player = createPlayer();
             createStars(); 
 
-            messageOverlay.style.display = 'none'; // Hide game over screen
+            messageOverlay.style.display = 'none'; 
             drawUI();
 
             if (animationFrameId) {
@@ -641,8 +653,8 @@
 
         function displayGameOverScreen() {
             finalScoreDisplay.textContent = `Your Score: ${score}`;
-            messageOverlay.style.display = 'flex'; // Show the game over screen
-            if (animationFrameId) { // Stop the game loop if it's running
+            messageOverlay.style.display = 'flex'; 
+            if (animationFrameId) { 
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
             }
@@ -650,7 +662,6 @@
 
 
         function togglePause() {
-            // This function is now only called if not gameOver
             if (!gameStarted) return; 
             gamePaused = !gamePaused;
 
@@ -664,7 +675,6 @@
                     cancelAnimationFrame(animationFrameId);
                     animationFrameId = null; 
                 }
-                // Draw paused message immediately as gameLoop won't run its main logic
                 ctx.font = '30px "Press Start 2P"';
                 ctx.fillStyle = '#ffff00';
                 ctx.textAlign = 'center';
@@ -675,11 +685,14 @@
         // --- Event Listeners ---
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
-        restartButton.addEventListener('click', startGame); // Add listener for the overlay's restart button
+        restartButton.addEventListener('click', startGame); 
 
 
         // --- Initial Setup ---
         function init() {
+            // Image loading starts when asteroidImage.src is set.
+            // init will proceed to set up the game.
+            // If the image isn't loaded by the first draw, the fallback in drawAsteroids will be used.
             resizeCanvas(); 
             player = createPlayer(); 
             createStars(); 
@@ -714,7 +727,7 @@
 
             if (!gameStarted) {
                 drawInitialMessage();
-            } else if (gamePaused) { // If paused, redraw the current state
+            } else if (gamePaused) { 
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight); 
                 drawStars(); 
                 if(player) drawPlayer();
@@ -726,14 +739,12 @@
                 ctx.fillStyle = '#ffff00';
                 ctx.textAlign = 'center';
                 ctx.fillText('PAUSED', canvasWidth / 2, canvasHeight / 2);
-            } else if (gameOver) { // If game over, the overlay is shown, canvas can be left as is or cleared
-                 // Optionally clear and draw a static background if desired under the overlay
+            } else if (gameOver) { 
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                drawStars(); // Keep stars visible for a nicer game over screen
-                // Maybe draw the player and remaining asteroids in their final positions
+                drawStars(); 
                 if(player) drawPlayer();
                 drawAsteroids();
-                drawExplosions(); // Finish any ongoing explosions
+                drawExplosions(); 
             }
         }
 
